@@ -5,58 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>日本免稅 10% 快速換算器</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { color: #d32f2f; text-align: center; }
-        .input-group { margin-bottom: 1.5rem; }
-        label { display: block; margin-bottom: 0.5rem; color: #555; font-weight: bold; }
-        input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.2rem; box-sizing: border-box; }
-        input:focus { border-color: #d32f2f; outline: none; }
-        .result { background: #fff8f8; border-left: 5px solid #d32f2f; padding: 1rem; margin-top: 1rem; }
-        .result p { margin: 8px 0; font-size: 1.1rem; }
-        .highlight { font-weight: bold; color: #d32f2f; font-size: 1.4rem; }
-        .note { font-size: 0.85rem; color: #777; line-height: 1.5; margin-top: 1.5rem; border-top: 1px solid #eee; padding-top: 1rem; }
+        :root { --primary-color: #e60012; --bg-color: #f8f9fa; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 450px; }
+        h1 { color: var(--primary-color); text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem; }
+        .input-box { margin-bottom: 2rem; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; }
+        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; font-size: 1.5rem; box-sizing: border-box; transition: 0.3s; background: #fff; }
+        input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 8px rgba(230,0,18,0.1); }
+        .result-area { background: #fff5f5; border-radius: 12px; padding: 1.5rem; margin-top: 1rem; }
+        .result-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+        .label-text { color: #666; font-size: 1rem; }
+        .value-text { font-weight: 700; font-size: 1.8rem; color: var(--primary-color); }
+        .tax-text { color: #28a745; font-weight: 600; font-size: 1.1rem; }
+        .explain { font-size: 0.9rem; color: #888; line-height: 1.6; margin-top: 2rem; border-top: 1px dashed #ddd; padding-top: 1.5rem; }
+        code { background: #eee; padding: 2px 5px; border-radius: 4px; font-family: monospace; color: #333; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🇯🇵 日本免稅換算器</h2>
+<div class="card">
+    <h1>🇯🇵 日本免稅換算器</h1>
     
-    <div class="input-group">
+    <div class="input-box">
         <label for="price">請輸入含稅價格 (稅込)</label>
         <input type="number" id="price" placeholder="例如: 129800" oninput="calculate()">
     </div>
 
-    <div class="result">
-        <p>你最後要付的錢 (免稅價):</p>
-        <p class="highlight" id="taxFreePrice">¥ 0</p>
-        <p>省下的稅金 (10%):</p>
-        <p id="taxAmount" style="color: #388e3c; font-weight: bold;">¥ 0</p>
+    <div class="result-area">
+        <div class="result-row">
+            <span class="label-text">免稅後支付金額</span>
+            <span class="value-text" id="finalPrice">¥ 0</span>
+        </div>
+        <div class="result-row">
+            <span class="label-text">省下的稅金 (10%)</span>
+            <span class="tax-text" id="taxSaved">¥ 0</span>
+        </div>
     </div>
 
-    <div class="note">
+    <div class="explain">
         <strong>💡 為什麼不是打 9 折？</strong><br>
-        免稅的邏輯是「把外掛的 10% 稅金拿掉」，數學公式是：<br>
-        <code>含稅價 ÷ 1.1 = 免稅價</code><br><br>
-        如果你直接打 9 折，會連商品本體都多扣了錢，大相機是不會答應的喔！<br>
-        (公式換算：10% 稅金約佔總價的 9.09%)
+        免稅是「把外掛的 10% 稅金拿掉」，數學邏輯是 <code>含稅價 ÷ 1.1 = 免稅價</code>。<br>
+        <br>
+        如果你直接打 9 折 (× 0.9)，會連商品本體都多扣了錢，店家是不會這樣算的喔！<br>
+        <br>
+        <strong>📌 小撇步：</strong><br>
+        想快速估算，請用 <code>含稅價 × 0.91</code>，這會比打 9 折精準得多。
     </div>
 </div>
 
 <script>
     function calculate() {
-        const price = document.getElementById('price').value;
-        if (price > 0) {
-            // 日本免稅正確公式：含稅價 / 1.1
-            const taxFree = Math.floor(price / 1.1);
-            const tax = price - taxFree;
+        const input = document.getElementById('price').value;
+        const finalElem = document.getElementById('finalPrice');
+        const taxElem = document.getElementById('taxSaved');
+        
+        if (input && input > 0) {
+            // 使用 Math.round 修正 1.1 浮點數運算誤差
+            const taxFree = Math.round(input / 1.1);
+            const saved = input - taxFree;
             
-            document.getElementById('taxFreePrice').innerText = '¥ ' + taxFree.toLocaleString();
-            document.getElementById('taxAmount').innerText = '¥ ' + tax.toLocaleString();
+            finalElem.innerText = '¥ ' + taxFree.toLocaleString();
+            taxElem.innerText = '¥ ' + saved.toLocaleString();
         } else {
-            document.getElementById('taxFreePrice').innerText = '¥ 0';
-            document.getElementById('taxAmount').innerText = '¥ 0';
+            finalElem.innerText = '¥ 0';
+            taxElem.innerText = '¥ 0';
         }
     }
 </script>
